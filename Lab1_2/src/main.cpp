@@ -1,71 +1,45 @@
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <Keypad.h>
-#include <UART.h>
-#include <LCDIO.h>
+#include <Arduino.h>
+#include <stdio.h>
+#include <string.h>
+#include "KeypadInput.h"
+#include "LCDOutput.h"
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+void initializeKeypadLcd()
+{
+    initializeLCD();
 
-const String password = "DCBA";
-String input = "";
+    static FILE lcdout;
+    static FILE kpdin;
 
-const byte ROWS = 4;
-const byte COLS = 4;
-char keys[ROWS][COLS] = {
-    {'1', '2', '3', 'A'},
-    {'4', '5', '6', 'B'},
-    {'7', '8', '9', 'C'},
-    {'*', '0', '#', 'D'}};
-byte rowPins[ROWS] = {9, 8, 7, 6};
-byte colPins[COLS] = {5, 4, 3, 2};
+    fdev_setup_stream(&lcdout, lcd_putchar, NULL, _FDEV_SETUP_WRITE);
+    fdev_setup_stream(&kpdin, NULL, keypad_getchar, _FDEV_SETUP_READ);
 
-Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+    stdout = &lcdout;
+    stdin = &kpdin;
+}
 
 void setup()
 {
-    initializeUart();
-    lcd.init();
-    lcd.backlight();
-    printMessage("Enter Password:");
+    initializeKeypadLcd();
+    printf("Enter Password: ");
 }
 
 void loop()
 {
-    char key = keypad.getKey();
-    if (key)
+    char input[17];
+    scanf("%16s", input);
+
+    printf("\n");
+    if (strcmp(input, "1234") == 0)
     {
-        if (key == '#')
-        {
-            char scannedInput[32] = {0};
-            if (sscanf(input.c_str(), "%31s", scannedInput) == 1)
-            {
-                printf("Scanned Input: %s\n", scannedInput);
-                if (strcmp(scannedInput, password.c_str()) == 0)
-                {
-                    printMessage("Access Granted");
-                }
-                else
-                {
-                    printMessage("Incorrect Password");
-                }
-            }
-            else
-            {
-                printMessage("Parse error!");
-            }
-            delay(2000);
-            input = "";
-            printMessage("Enter Password:");
-        }
-        else if (key == '*')
-        {
-            input = "";
-            printMessage("Enter Password:");
-        }
-        else
-        {
-            input += key;
-            printInput(input);
-        }
+        printf("Access Granted");
     }
+    else
+    {
+        printf("Wrong Password");
+    }
+
+    delay(2000);
+    lcd.clear();
+    printf("Enter Password: ");
 }
