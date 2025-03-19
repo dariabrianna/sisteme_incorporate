@@ -30,7 +30,7 @@ void loop()
     scanf("%16s", input);
 
     printf("\n");
-    if (strcmp(input, "1234") == 0)
+    if (strcmp(input, "2268") == 0)
     {
         printf("Access Granted");
     }
